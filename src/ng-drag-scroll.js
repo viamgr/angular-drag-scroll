@@ -12,9 +12,10 @@
         //Usage:
         //<div drag-scroll>Lorem ipsum dolor sit amet</div>
         var directive = {
-            scope: false,
+            scope: {move: '&'},
             restrict: 'A',
-            link: function($scope, $element, $attributes, vm) {
+            replace: true,
+            link: function ($scope, $element, $attributes, vm) {
                 var allowedClickOffset = 5;
                 var pushed = false;
                 var onDragStart = $parse($attributes.onDragStart);
@@ -24,7 +25,9 @@
                 var startClientY;
                 var lastClientX;
                 var lastClientY;
-
+                var move = $scope.move || function () {
+                        return true
+                    };
                 // Set event listeners
                 $element.on('mousedown', handleMouseDown);
 
@@ -34,7 +37,7 @@
                 /**
                  * Sets the event listeners for the mouseup and mousedown events
                  */
-                function setDragListeners () {
+                function setDragListeners() {
                     angular.element($window).on('mouseup', handleMouseUp);
                     angular.element($window).on('mousemove', handleMouseMove);
                 }
@@ -42,7 +45,7 @@
                 /**
                  * Removes the event listeners for the mouseup and mousedown events
                  */
-                function removeDragListeners () {
+                function removeDragListeners() {
                     angular.element($window).off('mouseup', handleMouseUp);
                     angular.element($window).off('mousemove', handleMouseMove);
                 }
@@ -51,9 +54,9 @@
                  * Handles mousedown event
                  * @param {object} e MouseDown event
                  */
-                function handleMouseDown (e) {
+                function handleMouseDown(e) {
 
-                    $scope.$apply(function() {
+                    $scope.$apply(function () {
                         onDragStart($scope);
                     });
 
@@ -75,7 +78,7 @@
                  * Handles mouseup event
                  * @param {object} e MouseUp event
                  */
-                function handleMouseUp (e) {
+                function handleMouseUp(e) {
                     var selectable = ('drag-scroll-text' in e.target.attributes);
                     var withinXConstraints = (e.clientX >= (startClientX - allowedClickOffset) && e.clientX <= (startClientX + allowedClickOffset));
                     var withinYConstraints = (e.clientY >= (startClientY - allowedClickOffset) && e.clientY <= (startClientY + allowedClickOffset));
@@ -84,12 +87,12 @@
                     pushed = false;
 
                     // Check if cursor falls within X and Y axis constraints
-                    if(selectable && withinXConstraints && withinYConstraints) {
+                    if (selectable && withinXConstraints && withinYConstraints) {
                         // If so, select the text inside the target element
                         selectText(e.target);
                     }
 
-                    $scope.$apply(function() {
+                    $scope.$apply(function () {
                         onDragEnd($scope);
                     });
 
@@ -100,23 +103,28 @@
                  * Handles mousemove event
                  * @param {object} e MouseMove event
                  */
-                function handleMouseMove (e) {
-                    if (pushed) {
-                        if(!axis || axis === 'x') {
-                            $element[0].scrollLeft -= (-lastClientX + (lastClientX = e.clientX));
+                function handleMouseMove(e) {
+                    if (move() == true) {
+                        if (pushed) {
+                            if (!axis || axis === 'x') {
+                                $element[0].scrollLeft -= (-lastClientX + (lastClientX = e.clientX));
+                            }
+                            if (!axis || axis === 'y') {
+                                $element[0].scrollTop -= (-lastClientY + (lastClientY = e.clientY));
+                            }
                         }
-                        if(!axis || axis === 'y') {
-                            $element[0].scrollTop -= (-lastClientY + (lastClientY = e.clientY));
-                        }
-                    }
 
-                    e.preventDefault();
+                        e.preventDefault();
+                    }
+                    else {
+                        return false;
+                    }
                 }
 
                 /**
                  * Destroys all the event listeners
                  */
-                function destroy () {
+                function destroy() {
                     $element.off('mousedown', handleMouseDown);
                     angular.element($window).off('mouseup', handleMouseUp);
                     angular.element($window).off('mousemove', handleMouseMove);
@@ -126,7 +134,7 @@
                  * Selects text for a specific element
                  * @param {object} element Selected element
                  */
-                function selectText (element) {
+                function selectText(element) {
                     if ($window.document.selection) {
                         var range = $window.document.body.createTextRange();
                         range.moveToElementText(element);
@@ -141,7 +149,7 @@
                 /**
                  * Clears text selection
                  */
-                function clearSelection () {
+                function clearSelection() {
                     if ($window.getSelection) {
                         if ($window.getSelection().empty) {  // Chrome
                             $window.getSelection().empty();
