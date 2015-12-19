@@ -55,7 +55,7 @@
                  * @param {object} e MouseDown event
                  */
                 function handleMouseDown(e) {
-
+        
                     $scope.$apply(function () {
                         onDragStart($scope);
                     });
@@ -69,9 +69,10 @@
                     lastClientY = startClientY = e.clientY;
 
                     clearSelection();
-
-                    e.preventDefault();
-                    e.stopPropagation();
+                    if (move()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
                 }
 
                 /**
@@ -104,8 +105,7 @@
                  * @param {object} e MouseMove event
                  */
                 function handleMouseMove(e) {
-                    if (move() == true)
-                    {
+                    if (move() == true) {
                         if (pushed) {
                             if (!axis || axis === 'x') {
                                 $element[0].scrollLeft -= (-lastClientX + (lastClientX = e.clientX));
