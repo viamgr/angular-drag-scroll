@@ -104,7 +104,8 @@
                  * @param {object} e MouseMove event
                  */
                 function handleMouseMove(e) {
-                    if (move() == true) {
+                    if (move() == true)
+                    {
                         if (pushed) {
                             if (!axis || axis === 'x') {
                                 $element[0].scrollLeft -= (-lastClientX + (lastClientX = e.clientX));
